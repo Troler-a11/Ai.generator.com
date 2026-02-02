@@ -3,93 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PREMIUM STORE | SYSTEM</title>
+    <title>PREMIUM SYSTEM v6.0</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <nav class="navbar">
-    <div class="logo">E-COMMERCE<span>.PRO</span></div>
-    <div class="cart-status" onclick="toggleCart()">КОШИК: <span id="cart-count">0</span></div>
+    <div class="logo">LUXE<span>STORE</span></div>
+    
+    <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Пошук товарів..." oninput="filterProducts()">
+    </div>
+
+    <div class="nav-tools">
+        <button class="admin-btn" onclick="toggleAdmin()">⚙️ ADM</button>
+        <div class="cart-status" onclick="toggleCart()">🛒 <span id="cart-count">0</span></div>
+    </div>
 </nav>
 
-<main class="store-grid" id="products">
+<section id="admin-panel" class="admin-section" style="display:none">
+    <div class="glass-card">
+        <h3>УПРАВЛІННЯ СКЛАДОМ</h3>
+        <div class="admin-inputs">
+            <input type="text" id="p-name" placeholder="Назва товару">
+            <input type="number" id="p-price" placeholder="Ціна (UAH)">
+            <input type="text" id="p-img" placeholder="Посилання на фото (URL)">
+            <button class="add-btn" onclick="addNewProduct()">ДОДАТИ НА ВІТРИНУ</button>
+        </div>
+    </div>
+</section>
+
+<main class="store-grid" id="products-container">
     </main>
 
 <div id="checkout-modal" class="modal">
     <div class="modal-content glass">
-        <h2>ОФОРМЛЕННЯ ЗАМОВЛЕННЯ</h2>
-        <div id="order-summary"></div>
-        <input type="text" id="cust-name" placeholder="Ваше ім'я">
-        <input type="tel" id="cust-phone" placeholder="+380...">
-        <button class="pay-btn" onclick="initiatePayment()">ОПЛАТИТИ ЧЕРЕЗ MONOBANK</button>
+        <h2>ВАШЕ ЗАМОВЛЕННЯ</h2>
+        <div id="cart-items-list"></div>
+        <hr>
+        <p id="total-price">Разом: 0 UAH</p>
+        <input type="text" id="cust-name" placeholder="Прізвище та Ім'я">
+        <input type="tel" id="cust-phone" placeholder="Номер телефону">
+        <button class="pay-btn" onclick="sendOrder()">ПІДТВЕРДИТИ ТА ОПЛАТИТИ</button>
         <button class="close-btn" onclick="toggleCart()">ЗАКРИТИ</button>
     </div>
 </div>
 
 <script>
-    const products = [
-        {id: 1, name: "Neural Watch v5", price: 12500, img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500"},
-        {id: 2, name: "Cyber Headphones", price: 8900, img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500"},
-        {id: 3, name: "Smart Hub Pro", price: 4500, img: "https://images.unsplash.com/photo-1586717791821-3f44a563eb4c?auto=format&fit=crop&w=500"}
+    // Початкові товари (якщо база порожня)
+    let inventory = JSON.parse(localStorage.getItem('myStoreProducts')) || [
+        {id: 1, name: "iPhone 15 Pro Max", price: 48000, img: "https://images.unsplash.com/photo-1696446701796-da61225697cc?w=500"},
+        {id: 2, name: "MacBook Air M2", price: 42000, img: "https://images.unsplash.com/photo-1611186871348-b1ec696e5237?w=500"}
     ];
 
     let cart = [];
 
-    function renderProducts() {
-        const container = document.getElementById('products');
-        container.innerHTML = products.map(p => `
+    function renderStore(items = inventory) {
+        const container = document.getElementById('products-container');
+        container.innerHTML = items.map(p => `
             <div class="product-card glass">
-                <img src="${p.img}" alt="${p.name}">
+                <div class="img-wrapper"><img src="${p.img}"></div>
                 <h3>${p.name}</h3>
-                <p class="price">${p.price} UAH</p>
-                <button class="buy-btn" onclick="addToCart(${p.id})">У КОШИК</button>
+                <p class="price">${p.price.toLocaleString()} UAH</p>
+                <button class="buy-btn" onclick="addToCart(${p.id})">КУПИТИ</button>
+                <button class="del-btn" onclick="deleteProduct(${p.id})" style="display:none">ВИДАЛИТИ</button>
             </div>
         `).join('');
     }
 
+    // ПОШУК
+    function filterProducts() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        const filtered = inventory.filter(p => p.name.toLowerCase().includes(query));
+        renderStore(filtered);
+    }
+
+    // АДМІН-ФУНКЦІЇ
+    function toggleAdmin() {
+        const pass = prompt("Введіть пароль адміністратора:");
+        if(pass === "5555") {
+            const panel = document.getElementById('admin-panel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            document.querySelectorAll('.del-btn').forEach(b => b.style.display = 'block');
+        } else {
+            alert("Доступ заборонено!");
+        }
+    }
+
+    function addNewProduct() {
+        const name = document.getElementById('p-name').value;
+        const price = document.getElementById('p-price').value;
+        const img = document.getElementById('p-img').value;
+
+        if(!name || !price || !img) return alert("Заповніть всі поля!");
+
+        const newP = { id: Date.now(), name, price: Number(price), img };
+        inventory.push(newP);
+        saveAndRefresh();
+    }
+
+    function deleteProduct(id) {
+        inventory = inventory.filter(p => p.id !== id);
+        saveAndRefresh();
+    }
+
+    function saveAndRefresh() {
+        localStorage.setItem('myStoreProducts', JSON.stringify(inventory));
+        renderStore();
+    }
+
+    // КОШИК
     function addToCart(id) {
-        const p = products.find(item => item.id === id);
-        cart.push(p);
+        cart.push(inventory.find(p => p.id === id));
         document.getElementById('cart-count').innerText = cart.length;
-        alert(`${p.name} додано!`);
     }
 
     function toggleCart() {
         const modal = document.getElementById('checkout-modal');
         modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
-        renderSummary();
+        renderCartList();
     }
 
-    function renderSummary() {
-        const summary = document.getElementById('order-summary');
+    function renderCartList() {
+        const list = document.getElementById('cart-items-list');
         const total = cart.reduce((sum, p) => sum + p.price, 0);
-        summary.innerHTML = `Всього товарів: ${cart.length} <br> <strong>До сплати: ${total} UAH</strong>`;
+        list.innerHTML = cart.map(p => `<div class="cart-item">${p.name} - ${p.price} UAH</div>`).join('');
+        document.getElementById('total-price').innerText = `Разом: ${total.toLocaleString()} UAH`;
     }
 
-    async function initiatePayment() {
+    async function sendOrder() {
         const name = document.getElementById('cust-name').value;
-        const phone = document.getElementById('cust-phone').value;
         const total = cart.reduce((sum, p) => sum + p.price, 0);
+        if(!name) return alert("Введіть ім'я!");
 
-        if(!name || !phone) return alert("Заповніть дані!");
-
-        // Логіка для продажу:
-        // Тут ми відправляємо дані на сервер або в Telegram-бот через Webhook
-        const message = `🛍 НОВЕ ЗАМОВЛЕННЯ!\n👤 Клієнт: ${name}\n📞 Тел: ${phone}\n💰 Сума: ${total} UAH`;
-        
-        // Відправка в Телеграм продавцю (приклад)
-        const botToken = "ТВІЙ_ТОКЕН";
-        const chatId = "ТВІЙ_ID";
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
-
-        // Перенаправлення на оплату (приклад Monobank API)
-        alert("Замовлення прийнято! Перенаправлення на платіжний шлюз...");
-        window.location.href = `https://send.monobank.ua/jar/YOUR_JAR_ID?amount=${total}`;
+        // Повідомлення в Телеграм (для прикладу)
+        alert(`Дякуємо, ${name}! Замовлення на суму ${total} UAH відправлено продавцю.`);
+        cart = [];
+        document.getElementById('cart-count').innerText = "0";
+        toggleCart();
     }
 
-    renderProducts();
+    renderStore();
 </script>
 </body>
 </html>
+ 
