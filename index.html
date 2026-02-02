@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-DREAMER | SHOP-NAME.UA</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>AI-DREAMER</h1>
+    <div class="limit-badge" id="counter">Залишилось спроб: 5</div>
+</header>
+
+<div class="container">
+    <div class="input-group">
+        <input type="text" id="prompt" placeholder="Опишіть картинку (напр. 'Cyberpunk city')">
+        <button id="genBtn" onclick="generate()">Створити магію ✨</button>
+    </div>
+    
+    <div class="loader" id="loader">🎨 ШІ малює... зачекайте</div>
+    <div class="image-box">
+        <img id="result" src="" alt="Ваш результат">
+    </div>
+</div>
+
+<div id="promoModal" class="modal">
+    <div class="modal-content">
+        <h2>Ліміт вичерпано! 🛑</h2>
+        <p>Оберіть пакет для поповнення балансу:</p>
+        
+        <div class="price-list">
+            <button onclick="alert('Тестовий код: test777')" class="test-btn">🎁 Тест (0 грн)</button>
+            <button onclick="pay(50, '5_sprob')">💎 5 спроб — 50 грн</button>
+            <button onclick="pay(100, '15_sprob')">🔥 15 спроб — 100 грн</button>
+            <button onclick="pay(250, 'unlimited')" class="gold-btn">👑 Безліміт — 250 грн</button>
+        </div>
+
+        <div class="promo-section">
+            <input type="text" id="promoInput" placeholder="Введіть код активації">
+            <button onclick="checkPromo()" class="activate-btn">Активувати</button>
+        </div>
+        <p class="footer-note">Гроші йдуть на: ilemberk3356@gmail.com</p>
+    </div>
+</div>
+
+<script>
+    let tries = parseInt(localStorage.getItem('ai_tries')) || 5;
+    let isPremium = localStorage.getItem('ai_premium') === 'true';
+    const myPaypal = "ilemberk3356@gmail.com";
+
+    const CODES = {
+        "test777": 3,
+        "plus5": 5,
+        "plus15": 15,
+        "freeAi2026forfree": "inf"
+    };
+
+    function updateUI() {
+        const counter = document.getElementById('counter');
+        if (isPremium) {
+            counter.innerText = "PREMIUM 🚀";
+            counter.classList.add('premium');
+        } else {
+            counter.innerText = `Залишилось спроб: ${tries}`;
+            if (tries <= 0) document.getElementById('promoModal').classList.add('active');
+        }
+    }
+
+    async function generate() {
+        const prompt = document.getElementById('prompt').value;
+        if (!prompt) return alert("Напишіть запит!");
+        if (!isPremium && tries <= 0) return document.getElementById('promoModal').classList.add('active');
+
+        const btn = document.getElementById('genBtn');
+        const img = document.getElementById('result');
+        const loader = document.getElementById('loader');
+
+        btn.disabled = true;
+        loader.style.display = "block";
+        img.style.display = "none";
+
+        const seed = Math.floor(Math.random() * 999999);
+        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${seed}&width=1024&height=1024&nologo=true`;
+
+        img.src = url;
+        img.onload = () => {
+            loader.style.display = "none";
+            img.style.display = "block";
+            btn.disabled = false;
+            if (!isPremium) {
+                tries--;
+                localStorage.setItem('ai_tries', tries);
+                updateUI();
+            }
+        };
+    }
+
+    function pay(amount, item) {
+        const url = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${myPaypal}&currency_code=UAH&amount=${amount}&item_name=AI_Package_${item}`;
+        window.open(url, '_blank');
+        alert("Після оплати введіть отриманий код.");
+    }
+
+    function checkPromo() {
+        const val = document.getElementById('promoInput').value.trim();
+        if (CODES[val]) {
+            if (CODES[val] === "inf") {
+                isPremium = true;
+                localStorage.setItem('ai_premium', 'true');
+            } else {
+                tries += CODES[val];
+                localStorage.setItem('ai_tries', tries);
+            }
+            document.getElementById('promoModal').classList.remove('active');
+            updateUI();
+            alert("Активовано!");
+        } else {
+            alert("Код невірний!");
+        }
+    }
+    updateUI();
+</script>
+</body>
+</html>
