@@ -3,111 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SUPREME AI | CONTENT STUDIO</title>
+    <title>PREMIUM STORE | SYSTEM</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div class="luxury-bg"></div>
+<nav class="navbar">
+    <div class="logo">E-COMMERCE<span>.PRO</span></div>
+    <div class="cart-status" onclick="toggleCart()">КОШИК: <span id="cart-count">0</span></div>
+</nav>
 
-<div class="dashboard">
-    <aside class="side-panel">
-        <div class="brand-box">
-            <h1 class="logo-text">SUPREME<span>AI</span></h1>
-        </div>
-        <nav class="nav-links">
-            <div class="link-item active" onclick="tab('studio')">STUDIO</div>
-            <div class="link-item" onclick="tab('writing')">COPYWRITING</div>
-            <div class="link-item" onclick="tab('billing')">BILLING</div>
-        </nav>
-        <div class="premium-badge">DIAMOND ACCESS</div>
-    </aside>
-
-    <main class="main-view">
-        <header class="top-bar">
-            <div class="search-emulation">System Status: Optimal</div>
-            <button class="upgrade-btn" onclick="openBilling()">UPGRADE PLAN</button>
-        </header>
-
-        <section id="tab-studio" class="content-tab active">
-            <div class="hero-section">
-                <h2>VISUAL_RETOUCH AI</h2>
-                <p>Створюйте преміальний візуальний контент одним кліком.</p>
-            </div>
-            
-            <div class="grid-layout">
-                <div class="input-card glass">
-                    <label>ПАРАМЕТРИ ГЕНЕРАЦІЇ</label>
-                    <textarea id="ai-prompt" placeholder="Опишіть ваш ідеальний образ (напр. Бізнесмен у приватному джеті, 8k, кінематографічно)"></textarea>
-                    <button class="action-btn" onclick="generateVisual()">INITIATE SYNTHESIS</button>
-                </div>
-                
-                <div class="preview-card glass">
-                    <div id="status-text" class="status-msg">READY TO PROCESS</div>
-                    <img id="render-res" src="" style="display:none">
-                    <div class="loader-bar" id="loader" style="display:none"></div>
-                </div>
-            </div>
-        </section>
-
-        <section id="tab-writing" class="content-tab">
-            <div class="glass-card full-width">
-                <h2>SMM NEURAL WRITER</h2>
-                <div class="chat-interface" id="chat-output">
-                    <div class="bot-msg">Вітаю. Я підготую тексти для вашого блогу українською мовою. Опишіть тему поста.</div>
-                </div>
-                <div class="input-row">
-                    <input type="text" id="chat-in" placeholder="Тема поста або Reels...">
-                    <button onclick="sendChat()">GENERATE</button>
-                </div>
-            </div>
-        </section>
+<main class="store-grid" id="products">
     </main>
-</div>
 
-<div id="modal-pay" class="pay-overlay">
-    <div class="pay-card">
-        <h3>АКТИВАЦІЯ ПРЕМІУМ-ДОСТУПУ</h3>
-        <p>Вартість: 1200 грн / міс</p>
-        <div class="pay-methods">
-            <button class="pay-btn" onclick="location.href='https://paypal.me/ilemberk3356/1200'">PAYPAL</button>
-        </div>
-        <button class="close-txt" onclick="closeBilling()">ПОВЕРНУТИСЬ</button>
+<div id="checkout-modal" class="modal">
+    <div class="modal-content glass">
+        <h2>ОФОРМЛЕННЯ ЗАМОВЛЕННЯ</h2>
+        <div id="order-summary"></div>
+        <input type="text" id="cust-name" placeholder="Ваше ім'я">
+        <input type="tel" id="cust-phone" placeholder="+380...">
+        <button class="pay-btn" onclick="initiatePayment()">ОПЛАТИТИ ЧЕРЕЗ MONOBANK</button>
+        <button class="close-btn" onclick="toggleCart()">ЗАКРИТИ</button>
     </div>
 </div>
 
 <script>
-    function tab(name) {
-        document.querySelectorAll('.content-tab').forEach(t => t.classList.remove('active'));
-        document.getElementById('tab-' + name).classList.add('active');
-        document.querySelectorAll('.link-item').forEach(l => l.classList.remove('active'));
-        event.target.classList.add('active');
+    const products = [
+        {id: 1, name: "Neural Watch v5", price: 12500, img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=500"},
+        {id: 2, name: "Cyber Headphones", price: 8900, img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=500"},
+        {id: 3, name: "Smart Hub Pro", price: 4500, img: "https://images.unsplash.com/photo-1586717791821-3f44a563eb4c?auto=format&fit=crop&w=500"}
+    ];
+
+    let cart = [];
+
+    function renderProducts() {
+        const container = document.getElementById('products');
+        container.innerHTML = products.map(p => `
+            <div class="product-card glass">
+                <img src="${p.img}" alt="${p.name}">
+                <h3>${p.name}</h3>
+                <p class="price">${p.price} UAH</p>
+                <button class="buy-btn" onclick="addToCart(${p.id})">У КОШИК</button>
+            </div>
+        `).join('');
     }
 
-    async function generateVisual() {
-        const loader = document.getElementById('loader');
-        const img = document.getElementById('render-res');
-        const status = document.getElementById('status-text');
-        
-        loader.style.display = 'block';
-        img.style.display = 'none';
-        status.innerText = "АНАЛІЗ ТЕНЗОРІВ...";
-
-        const prompt = document.getElementById('ai-prompt').value;
-        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1280&nologo=true&seed=${Math.random()}`;
-        
-        img.src = url;
-        img.onload = () => {
-            loader.style.display = 'none';
-            img.style.display = 'block';
-            status.innerText = "COMPLETE";
-        };
+    function addToCart(id) {
+        const p = products.find(item => item.id === id);
+        cart.push(p);
+        document.getElementById('cart-count').innerText = cart.length;
+        alert(`${p.name} додано!`);
     }
 
-    function openBilling() { document.getElementById('modal-pay').style.display = 'flex'; }
-    function closeBilling() { document.getElementById('modal-pay').style.display = 'none'; }
+    function toggleCart() {
+        const modal = document.getElementById('checkout-modal');
+        modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+        renderSummary();
+    }
+
+    function renderSummary() {
+        const summary = document.getElementById('order-summary');
+        const total = cart.reduce((sum, p) => sum + p.price, 0);
+        summary.innerHTML = `Всього товарів: ${cart.length} <br> <strong>До сплати: ${total} UAH</strong>`;
+    }
+
+    async function initiatePayment() {
+        const name = document.getElementById('cust-name').value;
+        const phone = document.getElementById('cust-phone').value;
+        const total = cart.reduce((sum, p) => sum + p.price, 0);
+
+        if(!name || !phone) return alert("Заповніть дані!");
+
+        // Логіка для продажу:
+        // Тут ми відправляємо дані на сервер або в Telegram-бот через Webhook
+        const message = `🛍 НОВЕ ЗАМОВЛЕННЯ!\n👤 Клієнт: ${name}\n📞 Тел: ${phone}\n💰 Сума: ${total} UAH`;
+        
+        // Відправка в Телеграм продавцю (приклад)
+        const botToken = "ТВІЙ_ТОКЕН";
+        const chatId = "ТВІЙ_ID";
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(message)}`);
+
+        // Перенаправлення на оплату (приклад Monobank API)
+        alert("Замовлення прийнято! Перенаправлення на платіжний шлюз...");
+        window.location.href = `https://send.monobank.ua/jar/YOUR_JAR_ID?amount=${total}`;
+    }
+
+    renderProducts();
 </script>
 </body>
 </html>
- 
