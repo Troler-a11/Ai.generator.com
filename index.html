@@ -2,180 +2,111 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEURAL_OS v.5.0 Professional</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SUPREME AI | CONTENT STUDIO</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div class="bg-overlay"></div>
+<div class="luxury-bg"></div>
 
-<button class="menu-toggle" onclick="toggleSidebar()">
-    <span></span><span></span><span></span>
-</button>
-
-<div class="app-layout">
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">NEURAL_OS</div>
-            <div class="close-btn" onclick="toggleSidebar()">×</div>
+<div class="dashboard">
+    <aside class="side-panel">
+        <div class="brand-box">
+            <h1 class="logo-text">SUPREME<span>AI</span></h1>
         </div>
-        
-        <nav class="nav-list">
-            <div class="nav-item active" onclick="switchTab('image')">🖼️ Візуалізація</div>
-            <div class="nav-item" onclick="switchTab('chat')">💬 Нейро-чат</div>
-            <div class="nav-item" onclick="switchTab('video')">📹 Відео-рендер</div>
+        <nav class="nav-links">
+            <div class="link-item active" onclick="tab('studio')">STUDIO</div>
+            <div class="link-item" onclick="tab('writing')">COPYWRITING</div>
+            <div class="link-item" onclick="tab('billing')">BILLING</div>
         </nav>
-
-        <div class="sidebar-footer">
-            <div class="status-indicator">
-                <span class="dot"></span> СТАТУС: ONLINE
-            </div>
-            <div class="acc-info">USER_LVL: 01</div>
-        </div>
+        <div class="premium-badge">DIAMOND ACCESS</div>
     </aside>
 
-    <main class="content">
-        
-        <section id="tab-image" class="tab-content active">
-            <div class="glass-box">
-                <div class="box-header">
-                    <h2>СИНТЕЗ ЗОБРАЖЕНЬ</h2>
-                    <div class="badge" id="img-tokens">ТОКЕНИ: 5</div>
+    <main class="main-view">
+        <header class="top-bar">
+            <div class="search-emulation">System Status: Optimal</div>
+            <button class="upgrade-btn" onclick="openBilling()">UPGRADE PLAN</button>
+        </header>
+
+        <section id="tab-studio" class="content-tab active">
+            <div class="hero-section">
+                <h2>VISUAL_RETOUCH AI</h2>
+                <p>Створюйте преміальний візуальний контент одним кліком.</p>
+            </div>
+            
+            <div class="grid-layout">
+                <div class="input-card glass">
+                    <label>ПАРАМЕТРИ ГЕНЕРАЦІЇ</label>
+                    <textarea id="ai-prompt" placeholder="Опишіть ваш ідеальний образ (напр. Бізнесмен у приватному джеті, 8k, кінематографічно)"></textarea>
+                    <button class="action-btn" onclick="generateVisual()">INITIATE SYNTHESIS</button>
                 </div>
                 
-                <div class="input-group">
-                    <textarea id="img-prompt" placeholder="Опишіть об'єкт для візуалізації..."></textarea>
-                    <button class="btn-main" onclick="runImageGen()">ГЕНЕРУВАТИ</button>
-                </div>
-
-                <div class="display-zone">
-                    <div id="img-loader" class="custom-loader" style="display:none">
-                        <div class="pulse"></div>
-                        <p>ОБРОБКА ТЕНЗОРІВ...</p>
-                    </div>
-                    <img id="img-result" src="" style="display:none">
-                </div>
-
-                <div id="img-footer" class="box-footer" style="display:none">
-                    <div class="rating-stars">⭐⭐⭐⭐⭐</div>
-                    <button class="btn-sec" onclick="downloadCurrentImg()">СКАЧАТИ .JPG</button>
+                <div class="preview-card glass">
+                    <div id="status-text" class="status-msg">READY TO PROCESS</div>
+                    <img id="render-res" src="" style="display:none">
+                    <div class="loader-bar" id="loader" style="display:none"></div>
                 </div>
             </div>
         </section>
 
-        <section id="tab-chat" class="tab-content">
-            <div class="glass-box chat-box">
-                <div class="box-header">
-                    <h2>LLM ІНТЕРФЕЙС</h2>
-                    <div class="badge" id="chat-tokens">КВОТА: 100</div>
+        <section id="tab-writing" class="content-tab">
+            <div class="glass-card full-width">
+                <h2>SMM NEURAL WRITER</h2>
+                <div class="chat-interface" id="chat-output">
+                    <div class="bot-msg">Вітаю. Я підготую тексти для вашого блогу українською мовою. Опишіть тему поста.</div>
                 </div>
-                <div id="chat-stream" class="terminal-view">
-                    <div class="line sys">СИСТЕМА: Neural Core v5.0 активний. Мова: Українська.</div>
-                </div>
-                <div class="terminal-input">
-                    <input type="text" id="chat-in" placeholder="Введіть запит..." onkeydown="if(event.key==='Enter') runChat()">
-                    <button onclick="runChat()">SEND</button>
+                <div class="input-row">
+                    <input type="text" id="chat-in" placeholder="Тема поста або Reels...">
+                    <button onclick="sendChat()">GENERATE</button>
                 </div>
             </div>
         </section>
-
-        <section id="tab-video" class="tab-content">
-            <div class="glass-box">
-                <div class="box-header">
-                    <h2>MOTION ENGINE</h2>
-                    <div class="badge">CREDIT: 1</div>
-                </div>
-                <div class="video-workspace">
-                    <div class="alert-box">⚠️ ВИСОКЕ НАВАНТАЖЕННЯ НА GPU.</div>
-                    <input type="text" id="vid-prompt" placeholder="Опишіть сцену для рендеру...">
-                    <button id="vid-btn" class="btn-main" onclick="runVideoRender()">ЗАПУСТИТИ РЕНДЕР</button>
-                    <div id="vid-res" class="vid-placeholder">ОЧІКУВАННЯ ДАНИХ...</div>
-                </div>
-            </div>
-        </section>
-
     </main>
 </div>
 
+<div id="modal-pay" class="pay-overlay">
+    <div class="pay-card">
+        <h3>АКТИВАЦІЯ ПРЕМІУМ-ДОСТУПУ</h3>
+        <p>Вартість: 1200 грн / міс</p>
+        <div class="pay-methods">
+            <button class="pay-btn" onclick="location.href='https://paypal.me/ilemberk3356/1200'">PAYPAL</button>
+        </div>
+        <button class="close-txt" onclick="closeBilling()">ПОВЕРНУТИСЬ</button>
+    </div>
+</div>
+
 <script>
-    let state = { img: 5, chat: 100, isPro: false };
-
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('open');
+    function tab(name) {
+        document.querySelectorAll('.content-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active');
+        document.querySelectorAll('.link-item').forEach(l => l.classList.remove('active'));
+        event.target.classList.add('active');
     }
 
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById(`tab-${tabId}`).classList.add('active');
-        event.currentTarget.classList.add('active');
-        if(window.innerWidth < 768) toggleSidebar();
-    }
-
-    async function runImageGen() {
-        if(state.img <= 0) return alert("Ліміт вичерпано. Потрібна активація.");
-        const prompt = document.getElementById('img-prompt').value;
-        const loader = document.getElementById('img-loader');
-        const img = document.getElementById('img-result');
+    async function generateVisual() {
+        const loader = document.getElementById('loader');
+        const img = document.getElementById('render-res');
+        const status = document.getElementById('status-text');
         
         loader.style.display = 'block';
         img.style.display = 'none';
+        status.innerText = "АНАЛІЗ ТЕНЗОРІВ...";
+
+        const prompt = document.getElementById('ai-prompt').value;
+        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1280&nologo=true&seed=${Math.random()}`;
         
-        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${Math.random()}`;
         img.src = url;
         img.onload = () => {
             loader.style.display = 'none';
             img.style.display = 'block';
-            document.getElementById('img-footer').style.display = 'flex';
-            state.img--;
-            document.getElementById('img-tokens').innerText = `ТОКЕНИ: ${state.img}`;
+            status.innerText = "COMPLETE";
         };
     }
 
-    async function runChat() {
-        const inp = document.getElementById('chat-in');
-        const box = document.getElementById('chat-stream');
-        if(!inp.value || state.chat <= 0) return;
-
-        box.innerHTML += `<div class="line user">>> ${inp.value}</div>`;
-        const q = inp.value;
-        inp.value = '';
-
-        try {
-            const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent("Відповідай виключно українською мовою: " + q)}`);
-            const text = await res.text();
-            box.innerHTML += `<div class="line ai">ШІ: ${text}</div>`;
-            state.chat--;
-            document.getElementById('chat-tokens').innerText = `КВОТА: ${state.chat}`;
-        } catch(e) {
-            box.innerHTML += `<div class="line sys">ПОМИЛКА ЗВ'ЯЗКУ.</div>`;
-        }
-        box.scrollTop = box.scrollHeight;
-    }
-
-    function runVideoRender() {
-        const btn = document.getElementById('vid-btn');
-        btn.disabled = true;
-        let progress = 0;
-        const timer = setInterval(() => {
-            progress += 2;
-            btn.innerText = `ПРОЦЕС: ${progress}%`;
-            if(progress >= 100) {
-                clearInterval(timer);
-                btn.innerText = "РЕНДЕР ЗАВЕРШЕНО";
-                document.getElementById('vid-res').innerHTML = `<img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJpZnZ6ZGR0bmV3bmR0bmV3bmR0bmV3bmR0bmV3bmR0bmV3bmR0ZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LpLd2NGvpaD84/giphy.gif" width="100%">`;
-            }
-        }, 100);
-    }
-
-    function downloadCurrentImg() {
-        const link = document.createElement('a');
-        link.href = document.getElementById('img-result').src;
-        link.download = 'neural_art.jpg';
-        link.click();
-    }
+    function openBilling() { document.getElementById('modal-pay').style.display = 'flex'; }
+    function closeBilling() { document.getElementById('modal-pay').style.display = 'none'; }
 </script>
 </body>
 </html>
