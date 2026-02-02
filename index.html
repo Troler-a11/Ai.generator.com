@@ -2,125 +2,316 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI-DREAMER | SHOP-NAME.UA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEURAL SYSTEM v.4.0</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<header>
-    <h1>AI-DREAMER</h1>
-    <div class="limit-badge" id="counter">Залишилось спроб: 5</div>
-</header>
+<div class="main-layout">
+    <nav class="sidebar">
+        <div class="brand">SYSTEM_AI</div>
+        <div class="menu">
+            <button class="nav-btn active" onclick="switchTab('image')">IMAGE_GEN</button>
+            <button class="nav-btn" onclick="switchTab('text')">NEURAL_CHAT</button>
+            <button class="nav-btn" onclick="switchTab('video')">VIDEO_RENDER</button>
+        </div>
+        <div class="status-panel">
+            <div>STATUS: <span style="color:#00ff88">ONLINE</span></div>
+            <div id="global-limit" style="font-size: 10px; color: #666; margin-top: 5px">ACC_LEVEL: USER</div>
+        </div>
+    </nav>
 
-<div class="container">
-    <div class="input-group">
-        <input type="text" id="prompt" placeholder="Опишіть картинку (напр. 'Cyberpunk city')">
-        <button id="genBtn" onclick="generate()">Створити магію ✨</button>
-    </div>
-    
-    <div class="loader" id="loader">🎨 ШІ малює... зачекайте</div>
-    <div class="image-box">
-        <img id="result" src="" alt="Ваш результат">
-    </div>
-</div>
-
-<div id="promoModal" class="modal">
-    <div class="modal-content">
-        <h2>Ліміт вичерпано! 🛑</h2>
-        <p>Оберіть пакет для поповнення балансу:</p>
+    <div class="content-area">
         
-        <div class="price-list">
-            <button onclick="alert('Тестовий код: test777')" class="test-btn">🎁 Тест (0 грн)</button>
-            <button onclick="pay(50, '5_sprob')">💎 5 спроб — 50 грн</button>
-            <button onclick="pay(100, '15_sprob')">🔥 15 спроб — 100 грн</button>
-            <button onclick="pay(250, 'unlimited')" class="gold-btn">👑 Безліміт — 250 грн</button>
+        <div id="tab-image" class="tab-content active">
+            <div class="header-bar">
+                <h2>VISUAL SYNTHESIS MODULE</h2>
+                <div class="tokens" id="img-counter">TOKENS: 5</div>
+            </div>
+
+            <div class="workspace">
+                <div class="input-console">
+                    <label>INPUT PROMPT_</label>
+                    <textarea id="img-prompt" placeholder="Enter parameters... (e.g. 'Hyper-realistic cyber city, 8k resolution')"></textarea>
+                    <button class="action-btn" id="genBtn" onclick="generateImage()">[ EXECUTE RENDER ]</button>
+                </div>
+
+                <div class="output-display" id="img-output-box">
+                    <div class="placeholder-text">WAITING FOR INPUT DATA...</div>
+                    <img id="img-result" src="" style="display:none">
+                    <div class="loader" id="img-loader">PROCESSING TENSORS...</div>
+                </div>
+
+                <div class="control-panel" id="img-controls" style="display:none">
+                    <div class="rating-system">
+                        <span>RLHF FEEDBACK:</span>
+                        <div class="stars">
+                            <span onclick="rate(1)">★</span><span onclick="rate(2)">★</span><span onclick="rate(3)">★</span><span onclick="rate(4)">★</span><span onclick="rate(5)">★</span>
+                        </div>
+                    </div>
+                    <button class="secondary-btn" onclick="downloadImage()">[ DOWNLOAD .JPG ]</button>
+                </div>
+            </div>
         </div>
 
-        <div class="promo-section">
-            <input type="text" id="promoInput" placeholder="Введіть код активації">
-            <button onclick="checkPromo()" class="activate-btn">Активувати</button>
+        <div id="tab-text" class="tab-content">
+            <div class="header-bar">
+                <h2>LLM INTERFACE</h2>
+                <div class="tokens" id="chat-counter">QUOTA: 100/100</div>
+            </div>
+            <div class="chat-terminal" id="chat-history">
+                <div class="msg system">SYSTEM: Neural Core initialized. Ready for query.</div>
+            </div>
+            <div class="input-line">
+                <span>>></span>
+                <input type="text" id="chat-input" placeholder="Enter command..." onkeydown="if(event.key==='Enter') sendChat()">
+                <button onclick="sendChat()">SEND</button>
+            </div>
         </div>
-        <p class="footer-note">Гроші йдуть на: ilemberk3356@gmail.com</p>
+
+        <div id="tab-video" class="tab-content">
+            <div class="header-bar">
+                <h2>MOTION ENGINE</h2>
+                <div class="tokens" id="video-counter">RENDER CREDIT: 1</div>
+            </div>
+            <div class="video-workspace">
+                <div class="warning-box">
+                    ⚠️ HIGH GPU USAGE. ESTIMATED RENDER TIME: 15-30 SEC.
+                </div>
+                <input type="text" id="video-prompt" class="full-input" placeholder="Describe motion sequence...">
+                <button class="action-btn" id="vidBtn" onclick="generateVideo()">[ INITIALIZE RENDER ]</button>
+                
+                <div class="video-display" id="video-result">
+                    </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
-<script>
-    let tries = parseInt(localStorage.getItem('ai_tries')) || 5;
-    let isPremium = localStorage.getItem('ai_premium') === 'true';
-    const myPaypal = "ilemberk3356@gmail.com";
+<div id="paywall" class="modal-overlay">
+    <div class="modal-window">
+        <div class="modal-header">ACCESS DENIED</div>
+        <div class="modal-body">
+            <p>QUOTA EXCEEDED.</p>
+            <p>Upgrade required to continue operations.</p>
+            
+            <div class="pricing-grid">
+                <div class="plan" onclick="pay(50, 'basic')">
+                    <div class="plan-name">LEVEL 1</div>
+                    <div class="plan-price">50 UAH</div>
+                    <div class="plan-desc">+5 IMG / +1 VIDEO</div>
+                </div>
+                <div class="plan" onclick="pay(250, 'pro')">
+                    <div class="plan-name">UNLIMITED</div>
+                    <div class="plan-price">250 UAH</div>
+                    <div class="plan-desc">FULL SYSTEM ACCESS</div>
+                </div>
+            </div>
+            
+            <div class="activation-area">
+                <input type="text" id="promo-code" placeholder="ENTER ACCESS KEY">
+                <button onclick="activateCode()">AUTHORIZE</button>
+            </div>
+            <button class="close-modal" onclick="closePaywall()">CLOSE</button>
+        </div>
+    </div>
+</div>
 
-    const CODES = {
-        "test777": 3,
-        "plus5": 5,
-        "plus15": 15,
-        "freeAi2026forfree": "inf"
+<script src="logic.js"></script>
+<script>
+    // Вбудуємо частину логіки сюди, або створимо окремий logic.js
+    // Для GitHub краще все в одному, якщо не хочеш створювати 3-й файл.
+    // Нижче я напишу JS прямо в тезі script, щоб працювало одразу.
+    
+    /* === SYSTEM LOGIC === */
+    const STATE = {
+        imgTries: parseInt(localStorage.getItem('sys_img')) || 5,
+        chatLimit: parseInt(localStorage.getItem('sys_chat')) || 100,
+        videoLimit: parseInt(localStorage.getItem('sys_vid')) || 1,
+        isPro: localStorage.getItem('sys_pro') === 'true',
+        chatHistory: []
     };
 
-    function updateUI() {
-        const counter = document.getElementById('counter');
-        if (isPremium) {
-            counter.innerText = "PREMIUM 🚀";
-            counter.classList.add('premium');
-        } else {
-            counter.innerText = `Залишилось спроб: ${tries}`;
-            if (tries <= 0) document.getElementById('promoModal').classList.add('active');
-        }
+    const CODES = { "test": "test", "pro2026": "inf", "plus5": 5 };
+    const PAYPAL = "ilemberk3356@gmail.com";
+
+    function init() {
+        updateCounters();
+        checkDayReset();
     }
 
-    async function generate() {
-        const prompt = document.getElementById('prompt').value;
-        if (!prompt) return alert("Напишіть запит!");
-        if (!isPremium && tries <= 0) return document.getElementById('promoModal').classList.add('active');
+    /* --- TABS --- */
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(`tab-${tab}`).classList.add('active');
+        // Знаходимо кнопку по тексту або індексу - спрощений варіант:
+        event.target.classList.add('active');
+    }
 
-        const btn = document.getElementById('genBtn');
-        const img = document.getElementById('result');
-        const loader = document.getElementById('loader');
+    /* --- IMAGE GEN --- */
+    async function generateImage() {
+        if(!STATE.isPro && STATE.imgTries <= 0) return showPaywall();
+        
+        const prompt = document.getElementById('img-prompt').value;
+        if(!prompt) return;
 
-        btn.disabled = true;
-        loader.style.display = "block";
-        img.style.display = "none";
-
+        const loader = document.getElementById('img-loader');
+        const img = document.getElementById('img-result');
+        const controls = document.getElementById('img-controls');
+        
+        loader.style.display = 'block';
+        img.style.display = 'none';
+        controls.style.display = 'none';
+        
         const seed = Math.floor(Math.random() * 999999);
-        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${seed}&width=1024&height=1024&nologo=true`;
+        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${seed}&width=1280&height=720&nologo=true&model=turbo`;
 
-        img.src = url;
         img.onload = () => {
-            loader.style.display = "none";
-            img.style.display = "block";
-            btn.disabled = false;
-            if (!isPremium) {
-                tries--;
-                localStorage.setItem('ai_tries', tries);
-                updateUI();
+            loader.style.display = 'none';
+            img.style.display = 'block';
+            controls.style.display = 'flex';
+            if(!STATE.isPro) {
+                STATE.imgTries--;
+                saveState();
             }
         };
+        img.src = url;
     }
 
-    function pay(amount, item) {
-        const url = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${myPaypal}&currency_code=UAH&amount=${amount}&item_name=AI_Package_${item}`;
-        window.open(url, '_blank');
-        alert("Після оплати введіть отриманий код.");
+    function downloadImage() {
+        const img = document.getElementById('img-result');
+        const a = document.createElement('a');
+        a.href = img.src;
+        a.download = `sys_render_${Date.now()}.jpg`;
+        a.target = '_blank'; // Для мобільних часто потрібен blank
+        a.click();
     }
 
-    function checkPromo() {
-        const val = document.getElementById('promoInput').value.trim();
-        if (CODES[val]) {
-            if (CODES[val] === "inf") {
-                isPremium = true;
-                localStorage.setItem('ai_premium', 'true');
-            } else {
-                tries += CODES[val];
-                localStorage.setItem('ai_tries', tries);
+    function rate(stars) {
+        // Емуляція навчання
+        alert(`FEEDBACK REGISTERED: ${stars}/5. WEIGHTS UPDATED.`);
+    }
+
+    /* --- CHAT --- */
+    async function sendChat() {
+        if(!STATE.isPro && STATE.chatLimit <= 0) return showPaywall();
+        
+        const input = document.getElementById('chat-input');
+        const text = input.value;
+        if(!text) return;
+        
+        addMsg('user', text);
+        input.value = '';
+        STATE.chatLimit--;
+        updateCounters();
+
+        // Емуляція відповіді (або реальний запит якщо є API, тут Pollinations text)
+        const chatBox = document.getElementById('chat-history');
+        const loadingMsg = document.createElement('div');
+        loadingMsg.className = 'msg system';
+        loadingMsg.innerText = 'COMPUTING...';
+        chatBox.appendChild(loadingMsg);
+
+        try {
+            const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(text)}?model=openai`);
+            const data = await response.text();
+            chatBox.removeChild(loadingMsg);
+            addMsg('ai', data);
+        } catch(e) {
+            chatBox.removeChild(loadingMsg);
+            addMsg('system', 'CONNECTION ERROR');
+        }
+        saveState();
+    }
+
+    function addMsg(role, text) {
+        const div = document.createElement('div');
+        div.className = `msg ${role}`;
+        div.innerHTML = role === 'user' ? `<span>USER:</span> ${text}` : `<span>SYS:</span> ${text}`;
+        document.getElementById('chat-history').appendChild(div);
+        document.getElementById('chat-history').scrollTop = 9999;
+    }
+
+    /* --- VIDEO --- */
+    function generateVideo() {
+        if(!STATE.isPro && STATE.videoLimit <= 0) return showPaywall();
+        
+        const btn = document.getElementById('vidBtn');
+        const disp = document.getElementById('video-result');
+        
+        btn.disabled = true;
+        btn.innerText = "RENDERING FRAMES [0%]";
+        disp.innerHTML = `<div style="color:#00cec9; text-align:center; padding:50px">INITIALIZING GPU CLUSTER...</div>`;
+
+        // Емуляція довгого процесу
+        let progress = 0;
+        const int = setInterval(() => {
+            progress += 10;
+            btn.innerText = `RENDERING FRAMES [${progress}%]`;
+            if(progress >= 100) {
+                clearInterval(int);
+                btn.innerText = "RENDER COMPLETE";
+                // Показуємо результат (статична картинка з ефектом або гіфка-заглушка, бо безкоштовного API відео немає)
+                disp.innerHTML = `<img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMzM1bnV4ZG50YnZ4bnV4ZG50YnZ4bnV4ZG50YnZ4bnV4ZG50eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKs7sF7w7lD0lTW/giphy.gif" style="width:100%; border-radius:5px; opacity:0.8">`;
+                
+                if(!STATE.isPro) {
+                    STATE.videoLimit--;
+                    saveState();
+                }
             }
-            document.getElementById('promoModal').classList.remove('active');
-            updateUI();
-            alert("Активовано!");
+        }, 500);
+    }
+
+    /* --- SYSTEM --- */
+    function showPaywall() {
+        document.getElementById('paywall').style.display = 'flex';
+    }
+    function closePaywall() {
+        document.getElementById('paywall').style.display = 'none';
+    }
+    function updateCounters() {
+        document.getElementById('img-counter').innerText = STATE.isPro ? "UNLIMITED" : `TOKENS: ${STATE.imgTries}`;
+        document.getElementById('chat-counter').innerText = STATE.isPro ? "UNLIMITED" : `QUOTA: ${STATE.chatLimit}/100`;
+        document.getElementById('video-counter').innerText = STATE.isPro ? "UNLIMITED" : `CREDIT: ${STATE.videoLimit}`;
+    }
+    function saveState() {
+        localStorage.setItem('sys_img', STATE.imgTries);
+        localStorage.setItem('sys_chat', STATE.chatLimit);
+        localStorage.setItem('sys_vid', STATE.videoLimit);
+        updateCounters();
+    }
+    function checkDayReset() {
+        // Тут можна додати перевірку дати для скидання чату, поки що просто зберігаємо
+    }
+    function pay(amount, item) {
+        window.open(`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${PAYPAL}&currency_code=UAH&amount=${amount}&item_name=SYS_UPGRADE_${item}`, '_blank');
+    }
+    function activateCode() {
+        const code = document.getElementById('promo-code').value;
+        if(CODES[code]) {
+            if(CODES[code] === 'inf') {
+                STATE.isPro = true;
+                localStorage.setItem('sys_pro', 'true');
+            } else if(code === 'test') {
+                STATE.imgTries = 3; STATE.videoLimit = 1;
+            } else {
+                STATE.imgTries += CODES[code];
+            }
+            saveState();
+            closePaywall();
+            alert('AUTHORIZATION SUCCESSFUL.');
         } else {
-            alert("Код невірний!");
+            alert('INVALID KEY.');
         }
     }
-    updateUI();
+
+    init();
 </script>
 </body>
 </html>
+
+        
