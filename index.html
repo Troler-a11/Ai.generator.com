@@ -2,143 +2,161 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>HARD_CASINO | Elite Terminal</title>
+    <title>HARD_CASINO | Luxury Gambling</title>
     <style>
-        :root { --accent: #00ff88; --bg: #050506; --panel: #111113; --gold: #ffcc00; }
-        body { background: var(--bg); color: white; font-family: 'JetBrains Mono', monospace; margin: 0; overflow-x: hidden; }
-        .header { display: flex; justify-content: space-between; padding: 20px 40px; background: var(--panel); border-bottom: 1px solid var(--accent); }
-        .btn { background: var(--accent); color: #000; border: none; padding: 12px 25px; cursor: pointer; font-weight: bold; border-radius: 5px; transition: 0.2s; }
-        .btn:hover { box-shadow: 0 0 15px var(--accent); }
+        :root { --accent: #00ff88; --bg: #030305; --panel: #0d0d11; --gold: #ffd700; }
+        body { background: var(--bg); color: white; font-family: 'JetBrains Mono', monospace; margin: 0; }
         
-        .game-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; padding: 50px; max-width: 1200px; margin: auto; }
-        .card { background: var(--panel); border: 1px solid #222; border-radius: 15px; padding: 30px; text-align: center; position: relative; }
-        .multiplier { position: absolute; top: 10px; right: 10px; background: var(--gold); color: #000; padding: 3px 8px; font-size: 12px; font-weight: bold; }
+        .header { display: flex; justify-content: space-between; padding: 20px 40px; background: var(--panel); border-bottom: 2px solid var(--accent); align-items: center; }
+        .balance-badge { background: #1a1a20; padding: 10px 20px; border-radius: 30px; border: 1px solid var(--gold); color: var(--gold); font-weight: bold; }
 
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; align-items: center; justify-content: center; }
-        .modal-content { background: var(--panel); border: 2px solid var(--accent); padding: 40px; border-radius: 20px; width: 450px; text-align: center; }
+        .main-container { max-width: 1200px; margin: auto; padding: 40px; }
         
-        input { width: 80%; padding: 12px; background: #000; border: 1px solid var(--accent); color: white; margin: 10px 0; text-align: center; font-family: inherit; }
+        /* Профіль */
+        .profile-card { background: var(--panel); border: 2px solid var(--accent); border-radius: 20px; padding: 30px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 0 30px rgba(0,255,136,0.1); }
+        .user-info h2 { margin: 0; font-size: 28px; text-transform: uppercase; }
         
-        #shuffleUI { display: none; position: fixed; inset: 0; background: #000; z-index: 5000; flex-direction: column; align-items: center; justify-content: center; }
-        .matrix-text { color: var(--accent); font-size: 12px; width: 80%; height: 200px; overflow: hidden; opacity: 0.4; margin: 20px 0; word-break: break-all; }
+        /* Ігри */
+        .games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; }
+        .game-box { background: var(--panel); border: 1px solid #222; border-radius: 20px; padding: 30px; text-align: center; transition: 0.3s; }
+        .game-box:hover { border-color: var(--accent); background: #111116; }
+
+        /* Стаканчики */
+        .cups-container { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; margin: 15px 0; }
+        .cup { height: 40px; background: #333; border-radius: 10px 10px 2px 2px; border: 1px solid #444; cursor: pointer; }
+        .cup.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+        /* Кубик */
+        .dice-box { font-size: 60px; margin: 20px 0; height: 80px; display: flex; align-items: center; justify-content: center; transition: 0.5s; }
+        .rolling { animation: roll 0.1s infinite; }
+        @keyframes roll { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
+
+        /* Кнопки */
+        .btn { background: var(--accent); color: #000; border: none; padding: 12px 25px; cursor: pointer; font-weight: 800; border-radius: 8px; text-transform: uppercase; transition: 0.2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,255,136,0.4); }
+        .btn-withdraw { background: transparent; border: 1px solid var(--gold); color: var(--gold); margin-left: 10px; }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; }
+        .modal-content { background: var(--panel); border: 2px solid var(--accent); padding: 40px; border-radius: 25px; width: 400px; text-align: center; }
+        input { width: 100%; padding: 15px; background: #000; border: 1px solid #333; color: white; margin: 15px 0; border-radius: 10px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div style="font-size: 24px; font-weight: 900; letter-spacing: 4px;">HARD<span>_CASINO</span></div>
-    <div><button class="btn" onclick="openProfile()">ПРОФІЛЬ / ПОПОВНЕННЯ</button></div>
+    <div style="font-size: 26px; font-weight: 900;">HARD<span style="color:var(--accent)">CASINO</span></div>
+    <div class="balance-badge"><span id="top-bal">0</span> HK</div>
 </div>
 
-<div class="game-grid">
-    <div class="card">
-        <div class="multiplier">x4.0</div>
-        <h3>CUPS</h3>
-        <p style="font-size: 11px; color: #555;">Знайди зірку серед 20 стаканів.</p>
-        <button class="btn" onclick="initiatePlay('cups')">ГРАТИ</button>
+<div class="main-container">
+    <div class="profile-card">
+        <div class="user-info">
+            <small style="color:#555">PLAYER SESSION</small>
+            <h2>ID: TN-7749-PRO</h2>
+            <p>Статус: <span style="color:var(--accent)">VIP MEMBER</span></p>
+        </div>
+        <div>
+            <button class="btn" onclick="document.getElementById('topupModal').style.display='flex'">ПОПОВНИТИ</button>
+            <button class="btn btn-withdraw" onclick="window.open('https://t.me/pingvin4ikpororo')">ВИВЕСТИ</button>
+        </div>
     </div>
-    <div class="card">
-        <div class="multiplier">x1.15</div>
-        <h3>DICE</h3>
-        <p style="font-size: 11px; color: #555;">Екстремальний рівень складності. Шанс 0.0001%.</p>
-        <button class="btn" onclick="initiatePlay('dice')">ГРАТИ</button>
-    </div>
-    <div class="card">
-        <div class="multiplier">x15.0</div>
-        <h3>HACKER</h3>
-        <p style="font-size: 11px; color: #555;">Злам 4-значного протоколу (0000-9999).</p>
-        <button class="btn" onclick="initiatePlay('hacker')">ГРАТИ</button>
+
+    <div class="games-grid">
+        <div class="game-box">
+            <div style="color:var(--gold); font-size:12px">MULTIPLIER: x4.0</div>
+            <h3>CUPS (20 UNITS)</h3>
+            <div class="cups-container" id="cupsGrid"></div>
+            <button class="btn" onclick="playGame('cups')">СТАВКА (min 50)</button>
+        </div>
+
+        <div class="game-box">
+            <div style="color:var(--gold); font-size:12px">MULTIPLIER: x1.15</div>
+            <h3>CYBER DICE</h3>
+            <div class="dice-box" id="diceDisplay">🎲</div>
+            <button class="btn" onclick="playGame('dice')">СТАВКА (min 50)</button>
+        </div>
+
+        <div class="game-box">
+            <div style="color:var(--gold); font-size:12px">MULTIPLIER: x15.0</div>
+            <h3>HACKER PROTOCOL</h3>
+            <div id="hacker-display" style="height:60px; color:var(--accent); font-size:30px; margin-top:20px">####</div>
+            <button class="btn" onclick="playGame('hacker')">СТАВКА (min 50)</button>
+        </div>
     </div>
 </div>
 
-<div id="shuffleUI">
-    <h2 id="status-text" style="letter-spacing: 5px;">GENERIC_RANDOM_SEED...</h2>
-    <div id="matrix" class="matrix-text"></div>
-    <h1 id="timer" style="color: var(--accent); font-size: 48px;">3.0s</h1>
-</div>
-
-<div id="profileModal" class="modal">
+<div id="topupModal" class="modal">
     <div class="modal-content">
-        <h2>TERMINAL</h2>
-        <p>БАЛАНС: <span id="bal" style="color: var(--gold); font-size: 24px;">0</span> HK</p>
-        <hr style="border: 0.5px solid #222;">
-        <input type="number" id="usdIn" placeholder="Сума в $" oninput="document.getElementById('hkOut').innerText = this.value * 2">
-        <p style="font-size: 14px;">Отримаєте: <span id="hkOut" style="color: var(--accent);">0</span> HK</p>
-        <small>КАРТА: 4874 1000 8549 0699</small>
-        <button class="btn" style="width: 100%; margin-top: 20px;" onclick="window.open('https://t.me/pingvin4ikpororo')">ПІДТВЕРДИТИ</button>
-        <button onclick="document.querySelectorAll('.modal').forEach(m=>m.style.display='none')" style="background:none; border:none; color:#444; margin-top:15px; cursor:pointer;">Закрити</button>
+        <h3 style="color:var(--accent)">ПОПОВНЕННЯ БАЛАНСУ</h3>
+        <p style="font-size:12px">Курс: 0.5$ = 1 HardKoin</p>
+        <input type="number" id="usdIn" placeholder="Сума в $" oninput="document.getElementById('hkTotal').innerText = this.value * 2">
+        <div style="margin-bottom:20px">Ви отримаєте: <b id="hkTotal" style="color:var(--accent)">0</b> HK</div>
+        <div style="background:#000; padding:15px; border-radius:10px; border:1px dashed var(--gold); font-size:14px">
+            КАРТА ДЛЯ ОПЛАТИ:<br>
+            <b style="letter-spacing:1px; color:var(--gold)">4874 1000 8549 0699</b>
+        </div>
+        <button class="btn" style="width:100%; margin-top:20px" onclick="alert('Очікування транзакції...')">Я ОПЛАТИВ</button>
+        <button onclick="this.parentElement.parentElement.style.display='none'" style="background:none; border:none; color:#555; margin-top:15px; cursor:pointer">Закрити</button>
     </div>
 </div>
 
 <script>
-    let balance = parseInt(localStorage.getItem('hk_balance')) || 100;
-    const winChance = 0.0000005; 
+    let balance = parseInt(localStorage.getItem('hk_balance')) || 500;
+    const winChance = 0.0000005;
 
-    function updateUI() {
-        document.getElementById('bal').innerText = balance;
-        localStorage.setItem('hk_balance', balance);
+    // Створення стаканчиків при завантаженні
+    function init() {
+        const grid = document.getElementById('cupsGrid');
+        grid.innerHTML = '';
+        for(let i=0; i<20; i++) {
+            grid.innerHTML += `<div class="cup" id="cup-${i}"></div>`;
+        }
+        document.getElementById('top-bal').innerText = balance;
     }
 
-    function openProfile() { document.getElementById('profileModal').style.display = 'flex'; updateUI(); }
-
-    function initiatePlay(game) {
-        let bet = prompt("Введіть суму HardKoin для ставки (мінімум 50):");
-        bet = parseInt(bet);
-
-        if (isNaN(bet) || bet < 50) return alert("Мінімальна ставка — 50 HK!");
-        if (bet > balance) return alert("Недостатньо коштів!");
+    async function playGame(type) {
+        let bet = prompt("Введіть суму ставки (min 50 HK):");
+        if(bet < 50 || bet > balance) return alert("Невірна сума або недостатньо коштів!");
 
         balance -= bet;
         updateUI();
 
-        let userGuess = "";
-        if (game === 'hacker') {
-            userGuess = prompt("ВСТАНОВІТЬ 4-ЗНАЧНИЙ КОД (0000-9999):");
-            if (!userGuess || userGuess.length !== 4) {
-                balance += bet; updateUI(); return alert("Потрібно 4 цифри!");
+        if(type === 'cups') {
+            // Анімація перетасовки
+            for(let i=0; i<15; i++) {
+                let r = Math.floor(Math.random()*20);
+                document.getElementById(`cup-${r}`).classList.add('active');
+                await new Promise(r => setTimeout(r, 150));
+                document.getElementById(`cup-${r}`).classList.remove('active');
             }
-        } else if (game === 'dice') {
-            userGuess = prompt("ЯКЕ ЧИСЛО ВИПАДЕ НА КУБИКУ (1-6)?");
+        } else if(type === 'dice') {
+            document.getElementById('diceDisplay').classList.add('rolling');
+            await new Promise(r => setTimeout(r, 2000));
+            document.getElementById('diceDisplay').classList.remove('rolling');
+            const diceFaces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+            document.getElementById('diceDisplay').innerText = diceFaces[Math.floor(Math.random()*6)];
+        } else if(type === 'hacker') {
+            let code = prompt("Введіть 4-значний код (0000-9999):");
         }
 
-        startAnimation(game, bet);
+        // Результат
+        if(Math.random() < winChance) {
+            let mult = type === 'cups' ? 4 : (type === 'hacker' ? 15 : 1.15);
+            let win = Math.floor(bet * mult);
+            balance += win;
+            alert("ВИГРАШ: " + win + " HK!");
+        } else {
+            alert("ПРОГРАШ. Спробуйте ще раз!");
+        }
+        updateUI();
     }
 
-    function startAnimation(game, bet) {
-        const ui = document.getElementById('shuffleUI');
-        const matrix = document.getElementById('matrix');
-        ui.style.display = 'flex';
-        
-        let mInterval = setInterval(() => {
-            matrix.innerText += Math.random().toString(36).substring(2, 15);
-            if(matrix.innerText.length > 1000) matrix.innerText = "";
-        }, 30);
-
-        let t = 3.0;
-        let tInterval = setInterval(() => {
-            t -= 0.1;
-            document.getElementById('timer').innerText = t.toFixed(1) + "s";
-            if(t <= 0) {
-                clearInterval(mInterval); clearInterval(tInterval);
-                ui.style.display = 'none';
-                
-                // Жорсткий рандом
-                const isWin = Math.random() < winChance;
-                const multipliers = { 'cups': 4, 'hacker': 15, 'dice': 1.15 };
-                
-                if (isWin) {
-                    let winAmt = Math.floor(bet * multipliers[game]);
-                    balance += winAmt;
-                    alert("КРИТИЧНА ПОМИЛКА БАЗИ: ВИГРАШ " + winAmt + " HK!");
-                } else {
-                    alert("ВІДМОВА У ДОСТУПІ. РЕЗУЛЬТАТ НЕ ЗБІГСЯ З ВАШИМ. Спробуйте ще раз.");
-                }
-                updateUI();
-            }
-        }, 100);
+    function updateUI() {
+        document.getElementById('top-bal').innerText = balance;
+        localStorage.setItem('hk_balance', balance);
     }
 
-    window.onload = updateUI;
+    init();
 </script>
 </body>
 </html>
