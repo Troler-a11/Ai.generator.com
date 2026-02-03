@@ -2,149 +2,143 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PREMIUM SYSTEM v6.0</title>
-    <link rel="stylesheet" href="style.css">
+    <title>HARD_CASINO | Elite Terminal</title>
+    <style>
+        :root { --accent: #00ff88; --bg: #050506; --panel: #111113; --gold: #ffcc00; }
+        body { background: var(--bg); color: white; font-family: 'JetBrains Mono', monospace; margin: 0; overflow-x: hidden; }
+        .header { display: flex; justify-content: space-between; padding: 20px 40px; background: var(--panel); border-bottom: 1px solid var(--accent); }
+        .btn { background: var(--accent); color: #000; border: none; padding: 12px 25px; cursor: pointer; font-weight: bold; border-radius: 5px; transition: 0.2s; }
+        .btn:hover { box-shadow: 0 0 15px var(--accent); }
+        
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; padding: 50px; max-width: 1200px; margin: auto; }
+        .card { background: var(--panel); border: 1px solid #222; border-radius: 15px; padding: 30px; text-align: center; position: relative; }
+        .multiplier { position: absolute; top: 10px; right: 10px; background: var(--gold); color: #000; padding: 3px 8px; font-size: 12px; font-weight: bold; }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; align-items: center; justify-content: center; }
+        .modal-content { background: var(--panel); border: 2px solid var(--accent); padding: 40px; border-radius: 20px; width: 450px; text-align: center; }
+        
+        input { width: 80%; padding: 12px; background: #000; border: 1px solid var(--accent); color: white; margin: 10px 0; text-align: center; font-family: inherit; }
+        
+        #shuffleUI { display: none; position: fixed; inset: 0; background: #000; z-index: 5000; flex-direction: column; align-items: center; justify-content: center; }
+        .matrix-text { color: var(--accent); font-size: 12px; width: 80%; height: 200px; overflow: hidden; opacity: 0.4; margin: 20px 0; word-break: break-all; }
+    </style>
 </head>
 <body>
 
-<nav class="navbar">
-    <div class="logo">LUXE<span>STORE</span></div>
-    
-    <div class="search-bar">
-        <input type="text" id="search-input" placeholder="Пошук товарів..." oninput="filterProducts()">
+<div class="header">
+    <div style="font-size: 24px; font-weight: 900; letter-spacing: 4px;">HARD<span>_CASINO</span></div>
+    <div><button class="btn" onclick="openProfile()">ПРОФІЛЬ / ПОПОВНЕННЯ</button></div>
+</div>
+
+<div class="game-grid">
+    <div class="card">
+        <div class="multiplier">x4.0</div>
+        <h3>CUPS</h3>
+        <p style="font-size: 11px; color: #555;">Знайди зірку серед 20 стаканів.</p>
+        <button class="btn" onclick="initiatePlay('cups')">ГРАТИ</button>
     </div>
-
-    <div class="nav-tools">
-        <button class="admin-btn" onclick="toggleAdmin()">⚙️ ADM</button>
-        <div class="cart-status" onclick="toggleCart()">🛒 <span id="cart-count">0</span></div>
+    <div class="card">
+        <div class="multiplier">x1.15</div>
+        <h3>DICE</h3>
+        <p style="font-size: 11px; color: #555;">Екстремальний рівень складності. Шанс 0.0001%.</p>
+        <button class="btn" onclick="initiatePlay('dice')">ГРАТИ</button>
     </div>
-</nav>
-
-<section id="admin-panel" class="admin-section" style="display:none">
-    <div class="glass-card">
-        <h3>УПРАВЛІННЯ СКЛАДОМ</h3>
-        <div class="admin-inputs">
-            <input type="text" id="p-name" placeholder="Назва товару">
-            <input type="number" id="p-price" placeholder="Ціна (UAH)">
-            <input type="text" id="p-img" placeholder="Посилання на фото (URL)">
-            <button class="add-btn" onclick="addNewProduct()">ДОДАТИ НА ВІТРИНУ</button>
-        </div>
+    <div class="card">
+        <div class="multiplier">x15.0</div>
+        <h3>HACKER</h3>
+        <p style="font-size: 11px; color: #555;">Злам 4-значного протоколу (0000-9999).</p>
+        <button class="btn" onclick="initiatePlay('hacker')">ГРАТИ</button>
     </div>
-</section>
+</div>
 
-<main class="store-grid" id="products-container">
-    </main>
+<div id="shuffleUI">
+    <h2 id="status-text" style="letter-spacing: 5px;">GENERIC_RANDOM_SEED...</h2>
+    <div id="matrix" class="matrix-text"></div>
+    <h1 id="timer" style="color: var(--accent); font-size: 48px;">3.0s</h1>
+</div>
 
-<div id="checkout-modal" class="modal">
-    <div class="modal-content glass">
-        <h2>ВАШЕ ЗАМОВЛЕННЯ</h2>
-        <div id="cart-items-list"></div>
-        <hr>
-        <p id="total-price">Разом: 0 UAH</p>
-        <input type="text" id="cust-name" placeholder="Прізвище та Ім'я">
-        <input type="tel" id="cust-phone" placeholder="Номер телефону">
-        <button class="pay-btn" onclick="sendOrder()">ПІДТВЕРДИТИ ТА ОПЛАТИТИ</button>
-        <button class="close-btn" onclick="toggleCart()">ЗАКРИТИ</button>
+<div id="profileModal" class="modal">
+    <div class="modal-content">
+        <h2>TERMINAL</h2>
+        <p>БАЛАНС: <span id="bal" style="color: var(--gold); font-size: 24px;">0</span> HK</p>
+        <hr style="border: 0.5px solid #222;">
+        <input type="number" id="usdIn" placeholder="Сума в $" oninput="document.getElementById('hkOut').innerText = this.value * 2">
+        <p style="font-size: 14px;">Отримаєте: <span id="hkOut" style="color: var(--accent);">0</span> HK</p>
+        <small>КАРТА: 4874 1000 8549 0699</small>
+        <button class="btn" style="width: 100%; margin-top: 20px;" onclick="window.open('https://t.me/pingvin4ikpororo')">ПІДТВЕРДИТИ</button>
+        <button onclick="document.querySelectorAll('.modal').forEach(m=>m.style.display='none')" style="background:none; border:none; color:#444; margin-top:15px; cursor:pointer;">Закрити</button>
     </div>
 </div>
 
 <script>
-    // Початкові товари (якщо база порожня)
-    let inventory = JSON.parse(localStorage.getItem('myStoreProducts')) || [
-        {id: 1, name: "iPhone 15 Pro Max", price: 48000, img: "https://images.unsplash.com/photo-1696446701796-da61225697cc?w=500"},
-        {id: 2, name: "MacBook Air M2", price: 42000, img: "https://images.unsplash.com/photo-1611186871348-b1ec696e5237?w=500"}
-    ];
+    let balance = parseInt(localStorage.getItem('hk_balance')) || 100;
+    const winChance = 0.0000005; 
 
-    let cart = [];
-
-    function renderStore(items = inventory) {
-        const container = document.getElementById('products-container');
-        container.innerHTML = items.map(p => `
-            <div class="product-card glass">
-                <div class="img-wrapper"><img src="${p.img}"></div>
-                <h3>${p.name}</h3>
-                <p class="price">${p.price.toLocaleString()} UAH</p>
-                <button class="buy-btn" onclick="addToCart(${p.id})">КУПИТИ</button>
-                <button class="del-btn" onclick="deleteProduct(${p.id})" style="display:none">ВИДАЛИТИ</button>
-            </div>
-        `).join('');
+    function updateUI() {
+        document.getElementById('bal').innerText = balance;
+        localStorage.setItem('hk_balance', balance);
     }
 
-    // ПОШУК
-    function filterProducts() {
-        const query = document.getElementById('search-input').value.toLowerCase();
-        const filtered = inventory.filter(p => p.name.toLowerCase().includes(query));
-        renderStore(filtered);
-    }
+    function openProfile() { document.getElementById('profileModal').style.display = 'flex'; updateUI(); }
 
-    // АДМІН-ФУНКЦІЇ
-    function toggleAdmin() {
-        const pass = prompt("Введіть пароль адміністратора:");
-        if(pass === "5555") {
-            const panel = document.getElementById('admin-panel');
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-            document.querySelectorAll('.del-btn').forEach(b => b.style.display = 'block');
-        } else {
-            alert("Доступ заборонено!");
+    function initiatePlay(game) {
+        let bet = prompt("Введіть суму HardKoin для ставки (мінімум 50):");
+        bet = parseInt(bet);
+
+        if (isNaN(bet) || bet < 50) return alert("Мінімальна ставка — 50 HK!");
+        if (bet > balance) return alert("Недостатньо коштів!");
+
+        balance -= bet;
+        updateUI();
+
+        let userGuess = "";
+        if (game === 'hacker') {
+            userGuess = prompt("ВСТАНОВІТЬ 4-ЗНАЧНИЙ КОД (0000-9999):");
+            if (!userGuess || userGuess.length !== 4) {
+                balance += bet; updateUI(); return alert("Потрібно 4 цифри!");
+            }
+        } else if (game === 'dice') {
+            userGuess = prompt("ЯКЕ ЧИСЛО ВИПАДЕ НА КУБИКУ (1-6)?");
         }
+
+        startAnimation(game, bet);
     }
 
-    function addNewProduct() {
-        const name = document.getElementById('p-name').value;
-        const price = document.getElementById('p-price').value;
-        const img = document.getElementById('p-img').value;
+    function startAnimation(game, bet) {
+        const ui = document.getElementById('shuffleUI');
+        const matrix = document.getElementById('matrix');
+        ui.style.display = 'flex';
+        
+        let mInterval = setInterval(() => {
+            matrix.innerText += Math.random().toString(36).substring(2, 15);
+            if(matrix.innerText.length > 1000) matrix.innerText = "";
+        }, 30);
 
-        if(!name || !price || !img) return alert("Заповніть всі поля!");
-
-        const newP = { id: Date.now(), name, price: Number(price), img };
-        inventory.push(newP);
-        saveAndRefresh();
+        let t = 3.0;
+        let tInterval = setInterval(() => {
+            t -= 0.1;
+            document.getElementById('timer').innerText = t.toFixed(1) + "s";
+            if(t <= 0) {
+                clearInterval(mInterval); clearInterval(tInterval);
+                ui.style.display = 'none';
+                
+                // Жорсткий рандом
+                const isWin = Math.random() < winChance;
+                const multipliers = { 'cups': 4, 'hacker': 15, 'dice': 1.15 };
+                
+                if (isWin) {
+                    let winAmt = Math.floor(bet * multipliers[game]);
+                    balance += winAmt;
+                    alert("КРИТИЧНА ПОМИЛКА БАЗИ: ВИГРАШ " + winAmt + " HK!");
+                } else {
+                    alert("ВІДМОВА У ДОСТУПІ. РЕЗУЛЬТАТ НЕ ЗБІГСЯ З ВАШИМ. Спробуйте ще раз.");
+                }
+                updateUI();
+            }
+        }, 100);
     }
 
-    function deleteProduct(id) {
-        inventory = inventory.filter(p => p.id !== id);
-        saveAndRefresh();
-    }
-
-    function saveAndRefresh() {
-        localStorage.setItem('myStoreProducts', JSON.stringify(inventory));
-        renderStore();
-    }
-
-    // КОШИК
-    function addToCart(id) {
-        cart.push(inventory.find(p => p.id === id));
-        document.getElementById('cart-count').innerText = cart.length;
-    }
-
-    function toggleCart() {
-        const modal = document.getElementById('checkout-modal');
-        modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
-        renderCartList();
-    }
-
-    function renderCartList() {
-        const list = document.getElementById('cart-items-list');
-        const total = cart.reduce((sum, p) => sum + p.price, 0);
-        list.innerHTML = cart.map(p => `<div class="cart-item">${p.name} - ${p.price} UAH</div>`).join('');
-        document.getElementById('total-price').innerText = `Разом: ${total.toLocaleString()} UAH`;
-    }
-
-    async function sendOrder() {
-        const name = document.getElementById('cust-name').value;
-        const total = cart.reduce((sum, p) => sum + p.price, 0);
-        if(!name) return alert("Введіть ім'я!");
-
-        // Повідомлення в Телеграм (для прикладу)
-        alert(`Дякуємо, ${name}! Замовлення на суму ${total} UAH відправлено продавцю.`);
-        cart = [];
-        document.getElementById('cart-count').innerText = "0";
-        toggleCart();
-    }
-
-    renderStore();
+    window.onload = updateUI;
 </script>
 </body>
 </html>
- 
