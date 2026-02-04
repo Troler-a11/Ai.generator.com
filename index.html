@@ -2,161 +2,216 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>HARD_CASINO | Luxury Gambling</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HARD_CASINO | VIP TERMINAL</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        :root { --accent: #00ff88; --bg: #030305; --panel: #0d0d11; --gold: #ffd700; }
-        body { background: var(--bg); color: white; font-family: 'JetBrains Mono', monospace; margin: 0; }
+        :root { --accent: #00ff88; --bg: #050505; --panel: #121214; --gold: #ffd700; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; }
+
+        /* Екрани */
+        .screen { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: none; flex-direction: column; padding: 20px; box-sizing: border-box; }
+        .screen.active { display: flex; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Профіль (Кругла кнопка) */
+        .profile-trigger { position: fixed; top: 20px; right: 20px; width: 60px; height: 60px; background: var(--panel); border: 2px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 50; box-shadow: 0 0 15px var(--accent); font-size: 28px; }
+
+        /* Карти */
+        .cards-wrap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; }
+        .card-slot { height: 100px; background: #222; border-radius: 10px; border: 2px solid #333; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .card-slot.selected { border-color: var(--accent); box-shadow: 0 0 15px var(--accent); }
+        .card-slot.shuffling { border-color: var(--gold); background: #333; }
+
+        /* Поля та кнопки */
+        input { padding: 15px; background: #000; border: 1px solid #333; color: white; border-radius: 12px; font-size: 16px; margin-bottom: 10px; width: 100%; box-sizing: border-box; }
+        .btn { background: var(--accent); color: black; padding: 16px; border: none; border-radius: 12px; font-weight: 900; cursor: pointer; text-transform: uppercase; width: 100%; margin-top: 10px; }
         
-        .header { display: flex; justify-content: space-between; padding: 20px 40px; background: var(--panel); border-bottom: 2px solid var(--accent); align-items: center; }
-        .balance-badge { background: #1a1a20; padding: 10px 20px; border-radius: 30px; border: 1px solid var(--gold); color: var(--gold); font-weight: bold; }
+        .close-x { position: absolute; top: 20px; left: 20px; font-size: 30px; cursor: pointer; color: #555; }
+        .hk-display { color: var(--gold); font-weight: bold; font-size: 24px; text-align: center; margin: 20px 0; }
 
-        .main-container { max-width: 1200px; margin: auto; padding: 40px; }
-        
-        /* Профіль */
-        .profile-card { background: var(--panel); border: 2px solid var(--accent); border-radius: 20px; padding: 30px; margin-bottom: 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 0 30px rgba(0,255,136,0.1); }
-        .user-info h2 { margin: 0; font-size: 28px; text-transform: uppercase; }
-        
-        /* Ігри */
-        .games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; }
-        .game-box { background: var(--panel); border: 1px solid #222; border-radius: 20px; padding: 30px; text-align: center; transition: 0.3s; }
-        .game-box:hover { border-color: var(--accent); background: #111116; }
-
-        /* Стаканчики */
-        .cups-container { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; margin: 15px 0; }
-        .cup { height: 40px; background: #333; border-radius: 10px 10px 2px 2px; border: 1px solid #444; cursor: pointer; }
-        .cup.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
-
-        /* Кубик */
-        .dice-box { font-size: 60px; margin: 20px 0; height: 80px; display: flex; align-items: center; justify-content: center; transition: 0.5s; }
-        .rolling { animation: roll 0.1s infinite; }
-        @keyframes roll { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
-
-        /* Кнопки */
-        .btn { background: var(--accent); color: #000; border: none; padding: 12px 25px; cursor: pointer; font-weight: 800; border-radius: 8px; text-transform: uppercase; transition: 0.2s; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,255,136,0.4); }
-        .btn-withdraw { background: transparent; border: 1px solid var(--gold); color: var(--gold); margin-left: 10px; }
-
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; }
-        .modal-content { background: var(--panel); border: 2px solid var(--accent); padding: 40px; border-radius: 25px; width: 400px; text-align: center; }
-        input { width: 100%; padding: 15px; background: #000; border: 1px solid #333; color: white; margin: 15px 0; border-radius: 10px; text-align: center; }
+        #big-result { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        .final-card { width: 220px; height: 320px; background: #fff; color: #000; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 60px; font-weight: 900; box-shadow: 0 0 50px var(--accent); animation: cardPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes cardPop { from { transform: scale(0.5) rotateY(90deg); } to { transform: scale(1) rotateY(0); } }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div style="font-size: 26px; font-weight: 900;">HARD<span style="color:var(--accent)">CASINO</span></div>
-    <div class="balance-badge"><span id="top-bal">0</span> HK</div>
-</div>
+    <div class="profile-trigger" id="prof-btn" style="display:none;" onclick="showScreen('scr-profile')">👤</div>
 
-<div class="main-container">
-    <div class="profile-card">
-        <div class="user-info">
-            <small style="color:#555">PLAYER SESSION</small>
-            <h2>ID: TN-7749-PRO</h2>
-            <p>Статус: <span style="color:var(--accent)">VIP MEMBER</span></p>
-        </div>
-        <div>
-            <button class="btn" onclick="document.getElementById('topupModal').style.display='flex'">ПОПОВНИТИ</button>
-            <button class="btn btn-withdraw" onclick="window.open('https://t.me/pingvin4ikpororo')">ВИВЕСТИ</button>
+    <div id="scr-auth" class="screen active">
+        <div style="max-width:400px; margin:auto; width:100%;">
+            <h1 style="text-align:center;">HARD_CASINO</h1>
+            <input type="text" id="reg-fio" placeholder="ПІБ">
+            <input type="email" id="reg-email" placeholder="Email">
+            <input type="password" id="reg-pass" placeholder="Пароль (12+ цифр)">
+            <button class="btn" onclick="handleAuth()">ЗАРЕЄСТРУВАТИСЯ</button>
         </div>
     </div>
 
-    <div class="games-grid">
-        <div class="game-box">
-            <div style="color:var(--gold); font-size:12px">MULTIPLIER: x4.0</div>
-            <h3>CUPS (20 UNITS)</h3>
-            <div class="cups-container" id="cupsGrid"></div>
-            <button class="btn" onclick="playGame('cups')">СТАВКА (min 50)</button>
-        </div>
-
-        <div class="game-box">
-            <div style="color:var(--gold); font-size:12px">MULTIPLIER: x1.15</div>
-            <h3>CYBER DICE</h3>
-            <div class="dice-box" id="diceDisplay">🎲</div>
-            <button class="btn" onclick="playGame('dice')">СТАВКА (min 50)</button>
-        </div>
-
-        <div class="game-box">
-            <div style="color:var(--gold); font-size:12px">MULTIPLIER: x15.0</div>
-            <h3>HACKER PROTOCOL</h3>
-            <div id="hacker-display" style="height:60px; color:var(--accent); font-size:30px; margin-top:20px">####</div>
-            <button class="btn" onclick="playGame('hacker')">СТАВКА (min 50)</button>
+    <div id="scr-verify" class="screen">
+        <div style="max-width:400px; margin:auto; width:100%; text-align:center;">
+            <h2>ВВЕДІТЬ КОД</h2>
+            <p>Лист відправлено англійською мовою на вашу пошту.</p>
+            <input type="number" id="v-code" placeholder="____">
+            <button class="btn" onclick="verifyAccount()">ПІДТВЕРДИТИ</button>
         </div>
     </div>
-</div>
 
-<div id="topupModal" class="modal">
-    <div class="modal-content">
-        <h3 style="color:var(--accent)">ПОПОВНЕННЯ БАЛАНСУ</h3>
-        <p style="font-size:12px">Курс: 0.5$ = 1 HardKoin</p>
-        <input type="number" id="usdIn" placeholder="Сума в $" oninput="document.getElementById('hkTotal').innerText = this.value * 2">
-        <div style="margin-bottom:20px">Ви отримаєте: <b id="hkTotal" style="color:var(--accent)">0</b> HK</div>
-        <div style="background:#000; padding:15px; border-radius:10px; border:1px dashed var(--gold); font-size:14px">
-            КАРТА ДЛЯ ОПЛАТИ:<br>
-            <b style="letter-spacing:1px; color:var(--gold)">4874 1000 8549 0699</b>
-        </div>
-        <button class="btn" style="width:100%; margin-top:20px" onclick="alert('Очікування транзакції...')">Я ОПЛАТИВ</button>
-        <button onclick="this.parentElement.parentElement.style.display='none'" style="background:none; border:none; color:#555; margin-top:15px; cursor:pointer">Закрити</button>
+    <div id="scr-lobby" class="screen">
+        <h2 style="text-align:center; letter-spacing:3px;">GAMES_POOL</h2>
+        <div class="hk-display"><span id="lobby-hk">0</span> HK</div>
+        <button class="btn" style="height:120px; margin-bottom:15px;" onclick="startCardsUI()">🃏 ELITE CARDS (x4.0)</button>
+        <button class="btn" style="height:120px; background:var(--gold);" onclick="startDiceUI()">🎲 CYBER DICE (x1.15)</button>
     </div>
-</div>
 
-<script>
-    let balance = parseInt(localStorage.getItem('hk_balance')) || 500;
-    const winChance = 0.0000005;
+    <div id="scr-profile" class="screen">
+        <div class="close-x" onclick="hideScreens()">×</div>
+        <center>
+            <div style="width:100px; height:100px; border:3px solid var(--accent); border-radius:50%; font-size:50px; line-height:100px; margin-top:50px;">👤</div>
+            <h2 id="p-name">Username</h2>
+            <p id="p-id" style="color:#444;">ID: #000000</p>
+            <div class="hk-display"><span id="p-hk">0</span> HK</div>
+            <hr style="border:0.5px solid #222; margin:20px 0;">
+            <p>ПОПОВНИТИ (4874 1000 8549 0699)</p>
+            <button class="btn" onclick="window.open('https://t.me/pingvin4ikpororo')">ВИВЕСТИ (TELEGRAM)</button>
+        </center>
+    </div>
 
-    // Створення стаканчиків при завантаженні
-    function init() {
-        const grid = document.getElementById('cupsGrid');
-        grid.innerHTML = '';
-        for(let i=0; i<20; i++) {
-            grid.innerHTML += `<div class="cup" id="cup-${i}"></div>`;
+    <div id="scr-game-cards" class="screen">
+        <div class="close-x" onclick="hideScreens()">×</div>
+        <h3 style="text-align:center;">ОБЕРІТЬ СВОЮ КАРТУ</h3>
+        <div class="cards-wrap" id="cards-grid"></div>
+        <div style="margin-top:30px;">
+            <input type="number" id="bet-cards" placeholder="Сума ставки (мін. 50)">
+            <button class="btn" onclick="playCards()">ГРАТИ</button>
+        </div>
+    </div>
+
+    <div id="big-result">
+        <div class="final-card" id="card-val">?</div>
+        <h1 id="win-text" style="margin-top:30px;"></h1>
+        <button class="btn" style="width:200px;" onclick="document.getElementById('big-result').style.display='none'">ДАЛІ</button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3BQTZeCp74owFliqECbUgufJ3UC6dFC8",
+            authDomain: "vip-shop-a2ec4.firebaseapp.com",
+            projectId: "vip-shop-a2ec4",
+            databaseURL: "https://vip-shop-a2ec4-default-rtdb.firebaseio.com",
+            appId: "1:429877342673:web:bf2fbcddd5f3ba04c670f0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        let user = null;
+        let authCode = null;
+
+        emailjs.init("YOUR_PUBLIC_KEY"); // ВСТАВ СВІЙ PUBLIC KEY
+
+        window.handleAuth = () => {
+            const fio = document.getElementById('reg-fio').value;
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-pass').value;
+
+            if(pass.length < 12) return alert("Пароль має бути 12+ цифр!");
+            
+            authCode = Math.floor(1000 + Math.random() * 9000);
+            
+            emailjs.send("service_dbkrnz9", "YOUR_TEMPLATE_ID", {
+                user_name: fio,
+                user_email: email,
+                auth_code: authCode
+            }).then(() => {
+                showScreen('scr-verify');
+            }).catch(err => alert("Помилка пошти: " + err));
+        };
+
+        window.verifyAccount = () => {
+            if(document.getElementById('v-code').value == authCode) {
+                const uid = "ID" + Math.floor(100000 + Math.random() * 899999);
+                const data = { name: document.getElementById('reg-fio').value, email: document.getElementById('reg-email').value, hk: 500, id: uid };
+                set(ref(db, 'players/' + uid), data);
+                localStorage.setItem('casino_uid', uid);
+                location.reload();
+            } else alert("Невірний код!");
+        };
+
+        // Завантаження профілю
+        const localUid = localStorage.getItem('casino_uid');
+        if(localUid) {
+            document.getElementById('scr-auth').classList.remove('active');
+            document.getElementById('prof-btn').style.display = 'flex';
+            showScreen('scr-lobby');
+            onValue(ref(db, 'players/' + localUid), (s) => {
+                user = s.val();
+                if(user) {
+                    document.getElementById('lobby-hk').innerText = user.hk;
+                    document.getElementById('p-hk').innerText = user.hk;
+                    document.getElementById('p-name').innerText = user.name;
+                    document.getElementById('p-id').innerText = "ID: " + user.id;
+                }
+            });
         }
-        document.getElementById('top-bal').innerText = balance;
-    }
 
-    async function playGame(type) {
-        let bet = prompt("Введіть суму ставки (min 50 HK):");
-        if(bet < 50 || bet > balance) return alert("Невірна сума або недостатньо коштів!");
-
-        balance -= bet;
-        updateUI();
-
-        if(type === 'cups') {
-            // Анімація перетасовки
-            for(let i=0; i<15; i++) {
-                let r = Math.floor(Math.random()*20);
-                document.getElementById(`cup-${r}`).classList.add('active');
-                await new Promise(r => setTimeout(r, 150));
-                document.getElementById(`cup-${r}`).classList.remove('active');
+        // ІГРИ
+        window.startCardsUI = () => {
+            showScreen('scr-game-cards');
+            const grid = document.getElementById('cards-grid');
+            grid.innerHTML = '';
+            for(let i=0; i<20; i++) {
+                const s = document.createElement('div');
+                s.className = 'card-slot';
+                s.innerText = '?';
+                s.onclick = () => {
+                    document.querySelectorAll('.card-slot').forEach(c=>c.classList.remove('selected'));
+                    s.classList.add('selected');
+                    s.dataset.idx = i;
+                };
+                grid.appendChild(s);
             }
-        } else if(type === 'dice') {
-            document.getElementById('diceDisplay').classList.add('rolling');
-            await new Promise(r => setTimeout(r, 2000));
-            document.getElementById('diceDisplay').classList.remove('rolling');
-            const diceFaces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
-            document.getElementById('diceDisplay').innerText = diceFaces[Math.floor(Math.random()*6)];
-        } else if(type === 'hacker') {
-            let code = prompt("Введіть 4-значний код (0000-9999):");
-        }
+        };
 
-        // Результат
-        if(Math.random() < winChance) {
-            let mult = type === 'cups' ? 4 : (type === 'hacker' ? 15 : 1.15);
-            let win = Math.floor(bet * mult);
-            balance += win;
-            alert("ВИГРАШ: " + win + " HK!");
-        } else {
-            alert("ПРОГРАШ. Спробуйте ще раз!");
-        }
-        updateUI();
-    }
+        window.playCards = async () => {
+            const bet = parseInt(document.getElementById('bet-cards').value);
+            const sel = document.querySelector('.card-slot.selected');
+            if(!sel || bet < 50 || bet > user.hk) return alert("Оберіть карту та суму (мін. 50)!");
 
-    function updateUI() {
-        document.getElementById('top-bal').innerText = balance;
-        localStorage.setItem('hk_balance', balance);
-    }
+            update(ref(db, 'players/' + user.id), { hk: user.hk - bet });
 
-    init();
-</script>
+            const slots = document.querySelectorAll('.card-slot');
+            for(let i=0; i<20; i++) {
+                let r = Math.floor(Math.random()*20);
+                slots[r].classList.add('shuffling');
+                await new Promise(res => setTimeout(res, 100));
+                slots[r].classList.remove('shuffling');
+            }
+
+            const winChance = 0.0000005;
+            const isWin = Math.random() < winChance;
+            const symbols = ['A♠', 'K♦', 'Q♥', 'J♣', '10♠'];
+            const resSym = symbols[Math.floor(Math.random()*symbols.length)];
+
+            document.getElementById('card-val').innerText = resSym;
+            document.getElementById('win-text').innerText = isWin ? "YOU WIN!" : "YOU LOSE";
+            document.getElementById('win-text').style.color = isWin ? "var(--accent)" : "red";
+            document.getElementById('big-result').style.display = 'flex';
+
+            if(isWin) update(ref(db, 'players/' + user.id), { hk: user.hk + (bet * 4) });
+        };
+
+        window.showScreen = (id) => { hideScreens(); document.getElementById(id).classList.add('active'); };
+        window.hideScreens = () => { 
+            document.querySelectorAll('.screen').forEach(s => {
+                if(s.id !== 'scr-auth' && s.id !== 'scr-verify') s.classList.remove('active');
+            });
+            document.getElementById('scr-lobby').classList.add('active');
+        };
+
+    </script>
 </body>
 </html>
